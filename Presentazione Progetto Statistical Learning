@@ -1,0 +1,462 @@
+\documentclass{beamer}
+\usetheme{Madrid}
+\usecolortheme{seahorse}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{booktabs}
+
+\lstset{
+  language=R,
+  basicstyle=\ttfamily\tiny,
+  backgroundcolor=\color{gray!10},
+  frame=single,
+  breaklines=true,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray!70},
+  stringstyle=\color{red!70},
+  showstringspaces=false
+}
+
+\title{Mettere in difficoltà un modello GAM}
+\author{Marco Vitali}
+\date{06 Giugno 2025}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Obiettivo}
+\begin{itemize}    
+    \item L'obiettivo di questo studio è generare dei dataset che possano mettere in difficoltà il modello GAM e testare alcuni dei suoi limiti.
+    \item Si parla di mettere in difficoltà questo modello a livello di predizione, non di inferenza.
+    \item È possibile far perdere potere predittivo al modello aggiungendo concurvità alle variabili predittrici?
+    \item Non è previsto l'uso di alcuni "trucchi" che compromettano lo scopo di questo studio.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Cosa sono i modelli GAM?}
+I Generalized Additive Models (GAM) sono un'estensione dei modelli lineari generalizzati in cui la relazione tra la variabile risposta \( Y \) e i predittori \( X_j \) è modellata come:
+\[
+g(\mathbb{E}[Y]) = \beta_0 + f_1(X_1) + f_2(X_2) + \dots + f_p(X_p)
+\]
+\begin{itemize}
+  \item Le \( f_j \) sono funzioni non parametriche stimate dai dati (tipicamente spline).
+  \item Permettono flessibilità nel modellare relazioni non lineari.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Esperimento 1}
+\begin{itemize}
+    \item 4 dataset con correlazione crescente tra le variabili grezze.
+    \item 4 variabili con distribuzione normale e 1 categorica su 3 livelli.
+    \item La variabile risposta $Y$ è generata come:
+\begin{align*}
+Y =\; & 2 X_{1} +
+3 X_{2}^2 +
+1.5 \cdot \mathbb{I}_{\{X_{3} = \text{livello B}\}} -
+1.5 \cdot \mathbb{I}_{\{X_{3} = \text{livello C}\}} + \\
+& + 2 \sin(X_{4}) +
+\frac{4}{1 + e^{-X_{5}}} +
+\varepsilon
+\end{align*}
+dove $\varepsilon \sim \mathcal{N}(0, 1)$.
+\end{itemize}
+\begin{table}[h!]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+ & Indipendenti & Bassa cor & Media cor & Alta cor \\
+\midrule
+MSE     & 1.0901 & 0.1635 & 0.0697 & 0.0126 \\
+CV-MSE  & 1.1068 & 0.1583 & 0.0524 & 0.0084 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\end{frame}
+
+% --- TEORIA: CONCURVITA' ---
+\begin{frame}{Concurvità tra variabili predittive}
+\begin{itemize}
+    \item La \textbf{concurvità} è l'analogo non lineare della multicollinearità nei modelli lineari.
+    \item Si verifica quando una variabile predittiva può essere approssimata come una \textit{funzione non lineare} di altre variabili nel modello.
+    \item Nei \textbf{modelli GAM}, ciò può portare a:
+    \begin{itemize}
+        \item Stime instabili dei termini lisci;
+        \item Ridotta interpretabilità dei singoli effetti;
+        \item Maggiore varianza nelle predizioni.
+    \end{itemize}
+    \item Se $X_2 \approx f(X_1)$ per qualche funzione liscia $f$, allora $X_1$ e $X_2$ sono concurvi.
+\end{itemize}
+\vspace{0.4cm}
+\textbf{Come calcolarla}: La concurvità può essere misurata calcolando il coefficiente di determinazione $R^2$ in modelli del tipo $X_j \sim f(X_k)$.
+\end{frame}
+
+\begin{frame}{Esperimento 2}
+\begin{itemize}
+    \item 20 dataset con concurvità crescente tra le variabili (ottenuta riducendo il rumore nelle trasformazioni non lineari).
+    \item 5 variabili predittive: 
+    \begin{itemize}
+        \item \texttt{X1} distribuita normalmente.
+        \item \texttt{X2} = $X_1^2 + \text{rumore}$, \texttt{X3} = $\sin(X_1) + \text{rumore}$, \texttt{X4} = $\log(1 + e^{X_1}) + \text{rumore}$.
+        \item \texttt{X5} indipendente da \texttt{X1}, distribuita normalmente.
+        \item \texttt{Xcat} categorica su 3 livelli (A, B, C).
+    \end{itemize}
+    \item La variabile risposta $Y$ è generata come:
+\begin{align*}
+Y =\; & 2 X_{1} +
+3 X_{1}^2 +
+1.5 \cdot \mathbb{I}_{\{X_{cat} = \text{B}\}} -
+1.5 \cdot \mathbb{I}_{\{X_{cat} = \text{C}\}} + 
+2 \sin(X_{1}) +
+\varepsilon
+\end{align*}
+dove $\varepsilon \sim \mathcal{N}(0, 1)$.
+\end{itemize}
+
+\begin{center}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.4\linewidth]{pplot1.png}
+\end{figure}
+\end{center}
+\end{frame}
+
+% --- TEORIA: RIDONDANZA ---
+\begin{frame}{Ridondanza informativa vs nociva}
+\textbf{Ridondanza informativa:}
+\begin{itemize}
+  \item Viene creata da variabili che contengono informazione sovrapposta ma utile per la previsione.
+  \item Es. una variabile \( X_2 = X_1^2 + \varepsilon\) con un errore \(\varepsilon\) piccolo, se \( Y \propto X_1^2 \).
+\end{itemize}
+
+\vspace{0.3cm}
+\textbf{Ridondanza nociva:}
+\begin{itemize}
+  \item Viene creata da variabili che sono concurve con quelle informative, ma non aggiungono segnale alla previsione.
+  \item Possono confondere il modello e peggiorare la generalizzazione.
+  \item Es. molte copie rumorose di una funzione di \( X_1 \), quando solo \( X_1 \) predice \( Y \).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Esperimento 3}
+\begin{itemize}
+    \item 4 dataset con concurvità crescente tra le variabili predittive.
+    \item Ogni dataset contiene 4 variabili numeriche, dove le trasformazioni non lineari introducono concurvità.
+    \item La variabile risposta $Y$ è generata come:
+    \[
+    Y = 2 X_1 + 3 X_2 + \varepsilon, \quad \varepsilon \sim \mathcal{N}(0, 1)
+    \]
+    \item Concurvità crescente ottenuta tramite trasformazioni su $X_1$:
+    \begin{itemize}
+        \item \textbf{Dataset 1:} tutte le variabili indipendenti.
+        \item \textbf{Dataset 2:} $X_2 = X_1^2$.
+        \item \textbf{Dataset 3:} $X_2 = X_1^2$, $X_3 = \sin(X_1)$.
+        \item \textbf{Dataset 4:} $X_2 = X_1^2$, $X_3 = \sin(X_1)$, $X_4 = \log(|X_1|+1)$.
+    \end{itemize}
+\end{itemize}
+
+\vspace{0.4cm}
+\begin{table}[h!]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+ & Dataset 1 & Dataset 2 & Dataset 3 & Dataset 4 \\
+\midrule
+MSE     & 0.8629 & 0.9843 & 1.0299 & 0.9027 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\end{frame}
+
+\begin{frame}{Concurvità nei 4 dataset dell'Esperimento 3}
+\scriptsize
+
+\begin{tabular}{lcccc|cccc}
+\multicolumn{5}{c}{\textbf{Dataset 1}} & \multicolumn{4}{c}{\textbf{Dataset 2}} \\
+\toprule
+ & s(X11) & s(X21) & s(X31) & s(X41) & s(X12) & s(X22) & s(X32) & s(X42) \\
+\midrule
+worst     & 0.117 & 0.123 & 0.139 & 0.107 & 1.000 & 1.000 & 0.120 & 0.105 \\
+observed  & 0.043 & 0.070 & 0.058 & 0.086 & 0.099 & 1.000 & 0.047 & 0.053 \\
+estimate  & 0.048 & 0.068 & 0.077 & 0.074 & 0.348 & 0.934 & 0.049 & 0.054 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.6cm}
+
+\begin{tabular}{lcccc|cccc}
+\multicolumn{5}{c}{\textbf{Dataset 3}} & \multicolumn{4}{c}{\textbf{Dataset 4}} \\
+\toprule
+ & s(X13) & s(X23) & s(X33) & s(X43) & s(X14) & s(X24) & s(X34) & s(X44) \\
+\midrule
+worst     & 1.000 & 1.000 & 1.000 & 0.133 & 1.000 & 1.000 & 1.000 & 1.000 \\
+observed  & 0.890 & 1.000 & 1.000 & 0.067 & 0.925 & 1.000 & 1.000 & 0.990 \\
+estimate  & 0.878 & 0.989 & 0.995 & 0.075 & 0.918 & 1.000 & 0.998 & 0.999 \\
+\bottomrule
+\end{tabular}
+
+\end{frame}
+
+\begin{frame}{Esperimento 4}
+\begin{itemize}
+    \item 20 dataset con concurvità crescente tra $X_1$ e le variabili $X_2$, $X_3$, $X_4$.
+    \item Le variabili X1, ... , X5 sono generate allo stesso modo dell'esperimento 2.
+    \item La variabile risposta $Y$ è generata come:
+\[
+Y = 5 \cdot \sin(X_1) + \varepsilon, \quad \varepsilon \sim \mathcal{N}(0, 1)
+\]
+    \item Le variabili X2, ... , X5 non portano informazione sul target, ma possono distrarre il modello.
+\end{itemize}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{pplot2.png}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Esperimento 5}
+\begin{itemize}
+    \item 4 dataset con 11 predittori: $X_1$ e 10 variabili irrilevanti ma fortemente concurve con $X_1$.
+    \item Le variabili irrilevanti sono generate come: $X_j = \sin(X_1) + \mathcal{N}(0, \sigma)$ per $j = 2, \dots, 11$.
+    \item Il rumore $\sigma$ viene diminuito progressivamente per aumentare la concurvità.
+    \item La variabile risposta $Y$ è generata come:
+\[
+Y = 5 \cdot \sin(X_1) + \varepsilon, \quad \varepsilon \sim \mathcal{N}(0, 0.2)
+\]
+    \item Le variabili predittive aggiuntive non generano il vero segnale, ma sono altamente correlate non linearmente con la vera variabile informativa.
+\end{itemize}
+
+\begin{table}[h!]
+\centering
+\small
+\begin{tabular}{cc}
+\toprule
+$\sigma$ & MSE \\
+\midrule
+0.50 & 0.0446 \\
+0.10 & 0.0409 \\
+0.05 & 0.0490 \\
+0.01 & 0.0611 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\end{frame}
+
+\begin{frame}{Esperimento 6}
+\begin{itemize}
+    \item Ogni dataset contiene $51$ predittori: $X_1$ e $50$ copie trasformate di $X_1$ non informative.
+    \item Le copie sono generate come prima: $X_j = \sin(X_1) + \mathcal{N}(0, \sigma)$ per $j = 2, \dots, 51$.
+    \item La variabile risposta $Y$ è generata come:
+    \[
+    Y = 5 \cdot \sin(X_1) + \varepsilon, \quad \varepsilon \sim \mathcal{N}(0, 0.2)
+    \]
+\end{itemize}
+
+\vspace{0.3cm}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{pplot3.png}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Controllo Esperimento 5}
+\begin{itemize}
+    \item Ripetizione dell'Esperimento 5 per verificare la robustezza dei risultati.
+    \item Generati 14 dataset con 10 variabili predittive fortemente \textbf{concurve} con $X_1$.
+    \item La variabile risposta $Y$ è data da:
+    \[
+    Y = 5 \cdot \sin(X_1) + \varepsilon, \quad \varepsilon \sim \mathcal{N}(0, 0.2)
+    \]
+    \item Nessuna delle variabili concurve contribuisce al vero segnale.
+\end{itemize}
+
+\vspace{0.4cm}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{pplot4.png}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Esperimento 7}
+\begin{itemize}
+    \item Provo ad aggiungere variabili \textbf{fuorvianti ma concurve}.
+    \item Ogni dataset contiene:
+    \begin{itemize}
+        \item 2 variabili predittive utili, derivate da $\sin(3X_1)$.
+        \item Un numero crescente di variabili \textbf{fuorvianti}, derivate da $-\cos(X_1 + \pi)$.
+        \item 5 variabili irrilevanti generate casualmente.
+    \end{itemize}
+    \item La risposta $Y$ è generata come:
+    \[
+    Y = \sin(3 X_1) + \varepsilon, \quad \varepsilon \sim \mathcal{N}(0, 0.3)
+    \]
+\end{itemize}
+
+\vspace{0.3cm}
+
+\begin{table}[h!]
+\centering
+\small
+\begin{tabular}{lccccc}
+\toprule
+\# variabili fuorvianti & 0 & 5 & 10 & 20 & 30 \\
+\midrule
+MSE                     & 0.0878 & 0.0887 & 0.0796 & 0.0916 & 0.0635 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\end{frame}
+
+\begin{frame}{Esperimento 8}
+\begin{itemize}
+    \item Analogamente all'esperimento 7 si generano variabili \textbf{buone, fuorvianti e concurve}, ma cambiando la formula delle fuorvianti. Le variabili fuorvianti derivano da una combinazione polinomiale: 
+        \[
+        X_{\text{bad}} = \frac{-9}{2}X_1^3 + 3X_1 + \varepsilon
+        \]
+\end{itemize}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.35\linewidth]{pplot5.png}
+\end{figure}
+
+\begin{table}[h!]
+\centering
+\small
+\begin{tabular}{lccccc}
+\toprule
+\# variabili fuorvianti & 0 & 5 & 10 & 20 & 30 \\
+\midrule
+MSE                     & 0.0878 & 0.0872 & 0.0799 & 0.0928 & 0.0778 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\end{frame}
+
+\begin{frame}{Esperimento 9}
+\begin{itemize}
+    \item Si aumenta il numero di variabili \textbf{fuorvianti concurve}.
+    \item Ogni dataset contiene:
+    \begin{itemize}
+        \item 1 variabile \textbf{rilevante} ($X_1$), da cui viene generata la risposta.
+        \item Un numero crescente di variabili \textbf{fuorvianti}, costruite come:
+        \[
+        X_{\text{bad}} = \text{scale}(\sin(3 X_1 + \varepsilon_1) + \varepsilon_2)
+        \]
+        \item 1 variabile irrilevante completamente casuale.
+    \end{itemize}
+    \item La variabile risposta è:
+    \[
+    Y = \sin(3 X_1) + \varepsilon, \quad \varepsilon \sim \mathcal{N}(0, 0.3)
+    \]
+\end{itemize}
+
+\vspace{0.3cm}
+
+\centering
+    \small
+    \begin{tabular}{c c c c c}
+        \toprule
+        \textbf{n\_bad} & 0 & 5 & 10 & 20 \\
+        \textbf{Test MSE} & 0.0962 & 0.0840 & 0.0919 & 0.1136 \\
+        \midrule
+        \textbf{n\_bad} & 30 & 50 & 75 & 100 \\
+        \textbf{Test MSE} & 0.1062 & 0.1399 & 0.3364 & 0.6167 \\
+        \bottomrule
+    \end{tabular}
+\end{frame}
+
+\begin{frame}{Esperimento 10}
+    \begin{itemize}
+        \item Si prova a cambiare la formula come fatto in precedenza.
+        \item Ogni dataset contiene:
+        \begin{itemize}
+            \item 1 variabile \textbf{rilevante} ($X_1$), da cui viene generata la risposta.
+            \item Un numero crescente di variabili \textbf{fuorvianti}, costruite come:
+            \[
+            X_{\text{bad}} = \text{scale}(  \frac{-9X^3}{2} + 3X + \varepsilon).
+            \]
+            \item La risposta \[ Y = \sin(3X_1) + \varepsilon)
+            \]
+            \item 1 variabile irrilevante completamente casuale.
+        \end{itemize}
+        \item La variabile risposta è:
+        \[
+        Y = \sin(3 X_1) + \varepsilon, \quad \varepsilon \sim \mathcal{N}(0, 0.3)
+        \]
+        \end{itemize}
+
+    \vspace{0.5em}
+
+    \centering
+    \small
+    \begin{tabular}{c c c c c}
+        \toprule
+        \textbf{n\_bad} & 0 & 5 & 10 & 20 \\
+        \textbf{Test MSE} & 0.0962 & 0.0976 & 0.0863 & 0.0959 \\
+        \midrule
+        \textbf{n\_bad} & 30 & 50 & 75 & 100 \\
+        \textbf{Test MSE} & 0.1308 & 0.1260 & 0.1315 & 0.1765 \\
+        \bottomrule
+    \end{tabular}
+\end{frame}
+
+\begin{frame}{Esperimento 11}
+    \begin{itemize}
+        \item L'esperimento è analogo ai due precedenti.
+        \item Le variabili fuorvianti seguono la formula \( \text{scale}(\frac{-X^3}{6} + X + \varepsilon) \).
+    \end{itemize}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.45\linewidth]{pplot6.png}
+\end{figure}
+
+    \centering
+    \small
+    \begin{tabular}{c c c c c}
+        \toprule
+        \textbf{n\_bad} & 0 & 5 & 10 & 20 \\
+        \textbf{Test MSE} & 0.0962 & 0.0941 & 0.0910 & 0.1025 \\
+        \midrule
+        \textbf{n\_bad} & 30 & 50 & 75 & 100 \\
+        \textbf{Test MSE} & 0.1230 & 0.1507 & 0.3885 & 0.5560 \\
+        \bottomrule
+    \end{tabular}
+
+\end{frame}
+
+\begin{frame}{Conclusioni}
+    \begin{itemize}
+        \item Il modello GAM è molto robusto e la maggior parte degli esperimenti è risultata in un fallimento.
+        \item Si è notato un aumento effettivo del MSE solo negli ultimi esperimenti, in cui sono state aggiunte molte variabili fuorvianti.
+        \item Forse aggiungere concurvità tra le variabili predittrici non è il miglior modo per far perdere potere predittivo al modello.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Bibliografia}
+\begin{itemize}
+    \item James, G., Witten, D., Hastie, T., \& Tibshirani, R. (2021). An introduction to statistical learning (Second edition). New York: Springer
+    \item Wikipedia
+    \item ChatGPT
+\end{itemize}    
+\end{frame}
+
+\begin{frame}{}
+\centering
+\Huge Grazie per l'attenzione!
+\end{frame}
+
+\end{document}
