@@ -1,0 +1,1033 @@
+# Esperimento 1
+
+# Data Generating Process
+# Dateset 1
+set.seed(35475)
+n <- 500
+
+set.seed(35475)
+# Variabili scorrelate
+X11 <- rnorm(n)
+X21 <- rnorm(n)
+X31 <- factor(sample(c("A", "B", "C"), n, replace = TRUE))
+X41 <- runif(n, 0, 2 * pi)
+X51 <- rnorm(n)
+
+# Risposta
+Y1 <- 2 * X11 +
+  3 * X21^2 +
+  model.matrix(~ X31)[,2]*1.5 + model.matrix(~ X31)[,3]*(-1.5) +
+  2 * sin(X41) +
+  4 * (1 / (1 + exp(-X51))) +
+  rnorm(n, 0, 1)
+
+# Dataframe
+df1 <- data.frame(Y1, X11, X21, X31, X41, X51)
+
+# Dataset 2
+
+library(MASS)
+
+set.seed(35475)
+
+mat_cor2 <- matrix(c(
+  1,   0.2, 0.05, 0.1,  0.3,  0.1,   # X12
+  0.2, 1,   0.1,  0.1,  0.2,  0.15,  # X22
+  0.05, 0.1, 1,   0.2,  0.1,  0.05,  # X42
+  0.1, 0.1, 0.2,  1,    0.05, 0.05,  # X52
+  0.3, 0.2, 0.1,  0.05, 1,    0.3,   # D12 (livello B)
+  0.1, 0.15, 0.05, 0.05, 0.3,  1     # D22 (livello C)
+), nrow = 6)
+
+set.seed(35475)
+
+# Simula i dati (media = 0, sd = 1)
+raw_data2 <- mvrnorm(n = n, mu = rep(0, 6), Sigma = mat_cor2)
+
+set.seed(35475)
+
+# Assegna nomi
+X12 <- raw_data2[,1]
+X22 <- raw_data2[,2]
+X42 <- raw_data2[,3]
+X52 <- raw_data2[,4]
+
+# Dummy "B" e "C"
+D12 <- raw_data2[,5] > 0
+D22 <- raw_data2[,6] > 0
+
+# Ricostruisci X3 a partire dai dummy
+X32 <- ifelse(D12, "B", ifelse(D22, "C", "A"))
+X32 <- factor(X32, levels = c("A", "B", "C"))
+
+# Risposta
+Y2 <- 2 * X12 +
+  3 * X22^2 +
+  model.matrix(~ X32)[,2]*1.5 + model.matrix(~ X32)[,3]*(-1.5) +
+  2 * sin(X42) +
+  4 * (1 / (1 + exp(-X52))) +
+  rnorm(n, 0, 1)
+
+# Dataframe
+df2 <- data.frame(Y2, X12, X22, X32, X42, X52)
+
+# Dataset 3
+
+mat_cor3 <- matrix(c(
+  1,   0.6, 0.4, 0.5,  0.3,  0.5,
+  0.6, 1,   0.5,  0.4,  0.5,  0.5,
+  0.4, 0.5, 1,   0.6,  0.7,  0.3,
+  0.5, 0.4, 0.6,  1,    0.5, 0.4,
+  0.3, 0.5, 0.7,  0.5, 1,    0.6,
+  0.5, 0.5, 0.3, 0.4, 0.6,  1
+), nrow = 6)
+
+set.seed(35475)
+raw_data3 <- mvrnorm(n = n, mu = rep(0, 6), Sigma = mat_cor3)
+
+X13 <- raw_data3[,1]
+X23 <- raw_data3[,2]
+X43 <- raw_data3[,3]
+X53 <- raw_data3[,4]
+
+D13 <- raw_data3[,5] > 0
+D23 <- raw_data3[,6] > 0
+
+X33 <- ifelse(D13, "B", ifelse(D23, "C", "A"))
+X33 <- factor(X33, levels = c("A", "B", "C"))
+
+set.seed(35475)
+Y3 <- 2 * X13 +
+  3 * X23^2 +
+  model.matrix(~ X33)[,2]*1.5 + model.matrix(~ X33)[,3]*(-1.5) +
+  2 * sin(X43) +
+  4 * (1 / (1 + exp(-X53))) +
+  rnorm(n, 0, 1)
+
+df3 <- data.frame(Y3, X13, X23, X33, X43, X53)
+
+# Dataset 4
+
+mat_cor4 <- matrix(c(
+  1,   0.9, 0.85, 0.8,  0.9,  0.85,
+  0.9, 1,   0.9,  0.85,  0.95,  0.8,
+  0.85, 0.9, 1,   0.8,  0.9,  0.9,
+  0.8, 0.85, 0.8,  1,    0.9, 0.8,
+  0.9, 0.95, 0.9,  0.9, 1,    0.85,
+  0.85, 0.8, 0.9, 0.8, 0.85,  1
+), nrow = 6)
+
+set.seed(35475)
+raw_data4 <- mvrnorm(n = n, mu = rep(0, 6), Sigma = mat_cor4)
+
+X14 <- raw_data4[,1]
+X24 <- raw_data4[,2]
+X44 <- raw_data4[,3]
+X54 <- raw_data4[,4]
+
+D14 <- raw_data4[,5] > 0
+D24 <- raw_data4[,6] > 0
+
+X34 <- ifelse(D14, "B", ifelse(D24, "C", "A"))
+X34 <- factor(X34, levels = c("A", "B", "C"))
+
+set.seed(35475)
+Y4 <- 2 * X14 +
+  3 * X24^2 +
+  model.matrix(~ X34)[,2]*1.5 + model.matrix(~ X34)[,3]*(-1.5) +
+  2 * sin(X44) +
+  4 * (1 / (1 + exp(-X54))) +
+  rnorm(n, 0, 1)
+
+df4 <- data.frame(Y4, X14, X24, X34, X44, X54)
+
+library(mgcv)
+
+# Dividi in training (70%) e test (30%)
+
+train_indices <- sample(1:nrow(df1), size = 0.7 * nrow(df1))
+
+train_df1 <- df1[train_indices, ]
+test_df1 <- df1[-train_indices, ]
+
+train_df2 <- df2[train_indices, ]
+test_df2 <- df2[-train_indices, ]
+
+train_df3 <- df3[train_indices, ]
+test_df3 <- df3[-train_indices, ]
+
+train_df4 <- df4[train_indices, ]
+test_df4 <- df4[-train_indices, ]
+
+
+# Fit modelli GAM
+mod1 <- gam(Y1 ~ s(X11) + s(X21) + X31 + s(X41) + s(X51), data = train_df1)
+mod2 <- gam(Y2 ~ s(X12) + s(X22) + X32 + s(X42) + s(X52), data = train_df2)
+mod3 <- gam(Y3 ~ s(X13) + s(X23) + X33 + s(X43) + s(X53), data = train_df3)
+mod4 <- gam(Y4 ~ s(X14) + s(X24) + X34 + s(X44) + s(X54), data = train_df4)
+
+# Predizioni
+pred1 <- predict(mod1, newdata = test_df1)
+pred2 <- predict(mod2, newdata = test_df2)
+pred3 <- predict(mod3, newdata = test_df3)
+pred4 <- predict(mod4, newdata = test_df4)
+
+# MSE
+mse1 <- mean((test_df1$Y1 - pred1)^2)
+mse2 <- mean((test_df2$Y2 - pred2)^2)
+mse3 <- mean((test_df3$Y3 - pred3)^2)
+mse4 <- mean((test_df4$Y4 - pred4)^2)
+
+cat("MSE modello senza correlazione:", round(mse1, 4), "\n")
+cat("MSE modello con bassa correlazione:", round(mse2, 4), "\n")
+cat("MSE modello con media correlazione:", round(mse3, 4), "\n")
+cat("MSE modello con alta correlazione:", round(mse4, 4), "\n")
+
+library(purrr)
+
+crossval_mse <- function(data, formula, k = 10) {
+  n <- nrow(data)
+  folds <- sample(rep(1:k, length.out = n))
+  
+  mse_values <- numeric(k)
+  
+  for (i in 1:k) {
+    train_data <- data[folds != i, ]
+    test_data  <- data[folds == i, ]
+    
+    model <- gam(formula, data = train_data)
+    pred <- predict(model, newdata = test_data)
+    
+    y_name <- all.vars(formula)[1]
+    mse_values[i] <- mean((test_data[[y_name]] - pred)^2)
+  }
+  
+  return(mean(mse_values))
+}
+
+# Applica la cross-validation a ciascun dataset
+mse_cv1 <- crossval_mse(df1, Y1 ~ s(X11) + s(X21) + X31 + s(X41) + s(X51))
+mse_cv2 <- crossval_mse(df2, Y2 ~ s(X12) + s(X22) + X32 + s(X42) + s(X52))
+mse_cv3 <- crossval_mse(df3, Y3 ~ s(X13) + s(X23) + X33 + s(X43) + s(X53))
+mse_cv4 <- crossval_mse(df4, Y4 ~ s(X14) + s(X24) + X34 + s(X44) + s(X54))
+
+cat("CV-MSE modello senza correlazione:     ", round(mse_cv1, 4), "\n")
+cat("CV-MSE modello con bassa correlazione: ", round(mse_cv2, 4), "\n")
+cat("CV-MSE modello con media correlazione: ", round(mse_cv3, 4), "\n")
+cat("CV-MSE modello con alta correlazione:  ", round(mse_cv4, 4), "\n")
+
+# I risultati attuali non stanno mostrando i limiti dei GAM perché:
+# 1) La correlazione tra predittori grezzi non si traduce necessariamente in concurvità
+# tra le funzioni lisce.
+# 2) Il modello riesce ad approfittare della ridondanza informativa.
+
+# Esperimento 2
+
+set.seed(35475)
+
+generate_dataset <- function(concurvity_level) {
+  X1 <- rnorm(n)
+  
+  X2 <- X1^2 + rnorm(n, sd = concurvity_level)
+  X3 <- sin(X1) + rnorm(n, sd = concurvity_level)
+  X4 <- log1p(exp(X1)) + rnorm(n, sd = concurvity_level)
+  X5 <- rnorm(n)
+  
+  Xcat <- factor(sample(c("A", "B", "C"), n, replace = TRUE), levels = c("A", "B", "C"))
+  
+  # Y non dipende da X4 e X5
+  Y <- 2 * X1 +
+    3 * X1^2 +
+    model.matrix(~ Xcat)[,2]*1.5 + model.matrix(~ Xcat)[,3]*(-1.5) +
+    2 * sin(X1) +
+    rnorm(n)
+  
+  df <- data.frame(Y, X1, X2, X3, X4, X5, Xcat)
+  return(df)
+}
+
+# Livelli di concurvità crescente (più basso il valore, più alta la concurvità)
+concurvity_levels <- c(2.0, 1.9, 1.8, 1.7, 1.6, 1.5, 1.4, 1.3, 1.2, 1.1, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1)
+datasets <- lapply(concurvity_levels, generate_dataset)
+
+# Misura la concurvità media come R² di X2, X3, X4 ~ X1
+measure_concurvity <- function(df) {
+  r2s <- sapply(c("X2", "X3", "X4"), function(var) {
+    mod <- lm(df[[var]] ~ df$X1)
+    summary(mod)$r.squared
+  })
+  mean(r2s)
+}
+
+concurvity_scores <- sapply(datasets, measure_concurvity)
+
+# Stampa risultati della concurvità
+for (i in seq_along(concurvity_levels)) {
+  cat(sprintf("Livello rumore %.1f: R² medio = %.4f\n", 
+              concurvity_levels[i], concurvity_scores[i]))
+}
+
+# Fit con GAM su tutte le variabili lisce
+
+evaluate_gam_mse <- function(df) {
+  # Split train/test
+  set.seed(3245)
+  n <- nrow(df)
+  idx_train <- sample(1:n, size = 0.7 * n)
+  train <- df[idx_train, ]
+  test <- df[-idx_train, ]
+  
+  # Fit GAM
+  model <- gam(Y ~ s(X1) + s(X2) + s(X3) + s(X4) + s(X5) + Xcat, data = train)
+  
+  # Predizioni su test set
+  preds <- predict(model, newdata = test)
+  mse <- mean((test$Y - preds)^2)
+  return(mse)
+}
+
+# Applica GAM a ciascun dataset
+mses <- sapply(datasets, evaluate_gam_mse)
+
+# Stampa risultati
+for (i in seq_along(concurvity_levels)) {
+  cat(sprintf("Livello rumore %.1f (R² medio %.4f): MSE = %.4f\n",
+              concurvity_levels[i],
+              concurvity_scores[i],
+              mses[i]))
+}
+
+library(ggplot2)
+
+df_plot <- data.frame(
+  Concurvity = concurvity_scores,
+  MSE = mses
+)
+
+ggplot(df_plot, aes(x = Concurvity, y = MSE)) +
+  geom_point(color = "#0072B2", size = 2.5) +
+  geom_line(color = "#0072B2", size = 1) +
+  labs(
+    x = "Concurvità media",
+    y = "MSE"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold")
+  )
+
+# I risultati ottenuti evidenziano che il modello GAM non è ancora messo in difficoltà al
+# crescere della concurvità tra le variabili, questo perchè la ridondanza aggiunta in questo caso
+# è alle volte ridondanza nociva, altre ridondanza informativa.
+# Proviamo a generare concurvità in un altrto modo.
+
+# Esperimento 3
+
+set.seed(123)
+n <- 500
+
+# 1) Dataset con variabili indipendenti (bassa concurvità)
+X11 <- rnorm(n)
+X21 <- rnorm(n)
+X31 <- rnorm(n)
+X41 <- rnorm(n)
+df1 <- data.frame(X11, X21, X31, X41)
+df1$Y <- 2 * df1$X11 + 3 * df1$X21 + rnorm(n, 0, 1)
+
+# 2) Dataset con concurvità media (una variabile è funzione di X1)
+X12 <- rnorm(n)
+X22 <- X12^2
+X32 <- rnorm(n)
+X42 <- rnorm(n)
+df2 <- data.frame(X12, X22, X32, X42)
+df2$Y <- 2 * df2$X12 + 3 * df2$X22 + rnorm(n, 0, 1)
+
+# 3) Dataset con concurvità alta (due variabili sono funzioni non lineari della prima)
+X13 <- rnorm(n)
+X23 <- X13^2
+X33 <- sin(X13)
+X43 <- rnorm(n)
+df3 <- data.frame(X13, X23, X33, X43)
+df3$Y <- 2 * df3$X13 + 3 * df3$X23 + rnorm(n, 0, 1)
+
+# 4) Dataset con concurvità massima (tutte trasformazioni della prima variabile)
+X14 <- rnorm(n)
+X24 <- X14^2
+X34 <- sin(X14)
+X44 <- log(abs(X14) + 1)
+df4 <- data.frame(X14, X24, X34, X44)
+df4$Y <- 2 * df4$X14 + 3 * df4$X24 + rnorm(n, 0, 1)
+
+# Funzione per fit GAM, calcolo MSE e concurvità
+test_gam <- function(df) {
+  # formula con spline per tutte e 4 variabili predittive
+  formula <- as.formula(paste("Y ~ s(", paste(names(df)[1:4], collapse = ") + s("), ")"))
+  
+  mod <- gam(formula, data = df)
+  
+  pred <- predict(mod, newdata = df)
+  mse <- mean((df$Y - pred)^2)
+  
+  conc <- concurvity(mod, full = TRUE)
+  
+  list(mse = mse, concurvity = conc)
+}
+
+res1 <- test_gam(df1)
+res2 <- test_gam(df2)
+res3 <- test_gam(df3)
+res4 <- test_gam(df4)
+
+cat("Dataset 1 - MSE:", round(res1$mse, 4), "\nConcurvità:\n")
+print(round(res1$concurvity, 3))
+cat("\n\n")
+
+cat("Dataset 2 - MSE:", round(res2$mse, 4), "\nConcurvità:\n")
+print(round(res2$concurvity, 3))
+cat("\n\n")
+
+cat("Dataset 3 - MSE:", round(res3$mse, 4), "\nConcurvità:\n")
+print(round(res3$concurvity, 3))
+cat("\n\n")
+
+cat("Dataset 4 - MSE:", round(res4$mse, 4), "\nConcurvità:\n")
+print(round(res4$concurvity, 3))
+
+# Ancora una volta il modello GAM non viene messo in difficoltà, ma notiamo che i MSE
+# peggiori si ottengono quando ci sono sia variabili concurve con X1 sia non-concurve, quindi
+# proviamo a far si che ci siano delle variabili che possano distrarre il modello.
+
+# Esperimento 4
+
+set.seed(42)
+
+generate_bad_dataset <- function(concurvity_level) {
+  X1 <- rnorm(n)
+  
+  X2 <- X1^2 + rnorm(n, sd = concurvity_level)
+  X3 <- sin(X1) + rnorm(n, sd = concurvity_level)
+  X4 <- log1p(abs(X1)) + rnorm(n, sd = concurvity_level)
+  X5 <- rnorm(n)
+  
+  # Y dipende solo da X1 (quindi le altre variabili dovrebbero "distrarre" il modello)
+  Y <- 5 * sin(X1) + rnorm(n)
+  
+  data.frame(Y, X1, X2, X3, X4, X5)
+}
+
+# Dataset con concurvità crescente
+noise_levels <- c(2.0, 1.9, 1.8, 1.7, 1.6, 1.5, 1.4, 1.3, 1.2, 1.1, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1)
+datasets <- lapply(noise_levels, generate_bad_dataset)
+
+# Valuta GAM su ciascun dataset
+evaluate_mse <- function(df) {
+  idx <- sample(1:nrow(df), size = 0.7 * nrow(df))
+  train <- df[idx, ]
+  test <- df[-idx, ]
+  
+  mod <- gam(Y ~ s(X1) + s(X2) + s(X3) + s(X4) + s(X5), data = train)
+  pred <- predict(mod, newdata = test)
+  mean((test$Y - pred)^2)
+}
+
+mses <- sapply(datasets, evaluate_mse)
+
+# Misura concurvità
+measure_concurvity <- function(df) {
+  r2s <- sapply(c("X2", "X3", "X4"), function(var) {
+    summary(lm(df[[var]] ~ df$X1))$r.squared
+  })
+  mean(r2s)
+}
+concurvity_scores <- sapply(datasets, measure_concurvity)
+
+# Risultati
+for (i in 1:20) {
+  cat(sprintf("Concurvità %.2f (R² medio: %.3f) -> MSE: %.4f\n",
+              noise_levels[i], concurvity_scores[i], mses[i]))
+}
+
+df_plot <- data.frame(
+  Concurvity = concurvity_scores,
+  MSE = mses
+)
+
+ggplot(df_plot, aes(x = Concurvity, y = MSE)) +
+  geom_point(color = "#0072B2", size = 2.5) +
+  geom_line(color = "#0072B2", size = 1) +
+  labs(
+    x = "Concurvità media",
+    y = "MSE"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold")
+  )
+
+# Stesso discorso di prima, far sì che Y dipendesse da una sola variabile non ha cambiato
+# la situazione, proviamo adesso ad aggiungere più variabili concurve con X1 ma
+# che non generano il vero segnale di Y.
+
+# Esperimento 5
+
+set.seed(42)
+
+generate_strong_concurvity_dataset <- function(concurvity_sd, n_irrelevant = 10) {
+  X1 <- rnorm(n)
+  
+  # Variabili inutili ma altamente concurve con X1
+  Xs <- replicate(n_irrelevant, {
+    sin(X1) + rnorm(n, sd = concurvity_sd)
+  })
+  
+  colnames(Xs) <- paste0("X", 2:(n_irrelevant + 1))
+  df <- as.data.frame(Xs)
+  df$X1 <- X1
+  
+  # Y dipende solo da X1
+  df$Y <- 5 * sin(X1) + rnorm(n, sd = 0.2)  # poco rumore per rendere MSE sensibile
+  df
+}
+
+# Testa con diversi livelli di concurvità
+sds <- c(0.5, 0.1, 0.05, 0.01)
+datasets <- lapply(sds, generate_strong_concurvity_dataset)
+
+evaluate_mse <- function(df) {
+  idx <- sample(1:nrow(df), size = 0.7 * nrow(df))
+  train <- df[idx, ]
+  test <- df[-idx, ]
+  
+  formula <- as.formula(paste("Y ~", paste(sprintf("s(%s)", names(df)[names(df) != "Y"]), collapse = " + ")))
+  model <- gam(formula, data = train)
+  
+  preds <- predict(model, newdata = test)
+  mean((test$Y - preds)^2)
+}
+
+mses <- sapply(datasets, evaluate_mse)
+
+# Risultati
+for (i in seq_along(sds)) {
+  cat(sprintf("Concurvità SD = %.4f → MSE: %.4f\n", sds[i], mses[i]))
+}
+
+# Sembrerebbe che stia pian piano iniziando a funzionare, la chiave sta
+# nell'aggiungere molti predittori fortemente concurvi con X1 ma che non predicono veramente Y.
+
+# Esperimento 6
+
+set.seed(42)
+
+# Generatore dataset
+generate_challenging_dataset <- function(concurvity_sd, n_copies = 50) {
+  X1 <- rnorm(n)
+  X_copies <- replicate(n_copies, sin(X1) + rnorm(n, sd = concurvity_sd))
+  colnames(X_copies) <- paste0("X", 2:(n_copies + 1))
+  df <- as.data.frame(X_copies)
+  df$Y <- 5 * sin(X1) + rnorm(n, sd = 0.2)  # Solo X1 genera Y
+  return(df)
+}
+
+# Funzione per calcolare MSE del GAM
+evaluate_gam_mse <- function(df) {
+  idx <- sample(1:nrow(df), size = 0.7 * nrow(df))
+  train <- df[idx, ]
+  test <- df[-idx, ]
+  pred_vars <- setdiff(names(df), "Y")
+  formula <- as.formula(paste("Y ~", paste(sprintf("s(%s)", pred_vars), collapse = " + ")))
+  model <- gam(formula, data = train)
+  preds <- predict(model, newdata = test)
+  mse <- mean((test$Y - preds)^2)
+  return(mse)
+}
+
+# Funzione per stimare la concurvità media tra le variabili
+mean_concurvity <- function(df) {
+  pred_vars <- setdiff(names(df), "Y")
+  formula <- as.formula(paste("Y ~", paste(sprintf("s(%s)", pred_vars), collapse = " + ")))
+  model <- gam(formula, data = df)
+  conc_matrix <- concurvity(model, full = TRUE)
+  return(mean(conc_matrix[lower.tri(conc_matrix)]))
+}
+
+# Valori di SD per cui generare i dataset (bassa SD = alta concurvità)
+concurvity_sds <- c(2.0, 1.5, 1.0, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01)
+
+results <- data.frame(sd = concurvity_sds, mse = NA, mean_concurvity = NA)
+
+# Loop su tutti i livelli di concurvità
+for (i in seq_along(concurvity_sds)) {
+  df <- generate_challenging_dataset(concurvity_sd = concurvity_sds[i], n_copies = 50)
+  results$mse[i] <- evaluate_gam_mse(df)
+  results$mean_concurvity[i] <- mean_concurvity(df)
+  cat(sprintf("SD = %.3f → MSE = %.4f | Concurvità media = %.4f\n",
+              concurvity_sds[i], results$mse[i], results$mean_concurvity[i]))
+}
+
+df_plot <- data.frame(
+     concurvità = results$mean_concurvity,
+     MSE = results$mse
+ )
+ggplot(df_plot, aes(x = concurvità, y = MSE)) +
+     geom_point(size = 3, color = "#984ea3") +
+     geom_line(color = "#984ea3", linewidth = 1) +
+     labs(
+         x = "Concurvità media",
+         y = "MSE"
+     ) +
+     theme_minimal(base_size = 14) +
+     theme(
+         plot.title = element_text(face = "bold", hjust = 0.5),
+         axis.title = element_text(face = "bold")
+     )
+
+# Controllo sull'esperimento 5
+
+set.seed(42)
+
+generate_strong_concurvity_dataset <- function(concurvity_sd, n_irrelevant = 10) {
+  X1 <- rnorm(n)
+  
+  # Variabili inutili ma altamente concurve con X1
+  Xs <- replicate(n_irrelevant, {
+    sin(X1) + rnorm(n, sd = concurvity_sd)
+  })
+  
+  colnames(Xs) <- paste0("X", 2:(n_irrelevant + 1))
+  df <- as.data.frame(Xs)
+  df$X1 <- X1
+  
+  # Y dipende solo da X1
+  df$Y <- 5 * sin(X1) + rnorm(n, sd = 0.2)  # poco rumore per rendere MSE sensibile
+  df
+}
+
+# Testa con diversi livelli di concurvità
+sds <- c(0.5, 0.4, 0.3, 0.2, 0.1, 0.09, 0.08, 0.07, 0.06, 0.05, 0.04, 0.03, 0.02, 0.01)
+datasets <- lapply(sds, generate_strong_concurvity_dataset)
+
+evaluate_mse <- function(df) {
+  idx <- sample(1:nrow(df), size = 0.7 * nrow(df))
+  train <- df[idx, ]
+  test <- df[-idx, ]
+  
+  formula <- as.formula(paste("Y ~", paste(sprintf("s(%s)", names(df)[names(df) != "Y"]), collapse = " + ")))
+  model <- gam(formula, data = train)
+  
+  preds <- predict(model, newdata = test)
+  mean((test$Y - preds)^2)
+}
+
+mses <- sapply(datasets, evaluate_mse)
+
+# Risultati
+for (i in seq_along(sds)) {
+  cat(sprintf("Concurvità SD = %.4f → MSE: %.4f\n", sds[i], mses[i]))
+}
+
+df_plot <- data.frame(
+  SD = sds,
+  MSE = mses
+)
+
+ggplot(df_plot, aes(x = SD, y = MSE)) +
+  geom_point(size = 3, color = "#ff7f00") +
+  geom_line(color = "#ff7f00", linewidth = 1) +
+  scale_x_reverse() +
+  labs(
+    title = "Controllo esperimento 5",
+    x = "Rumore SD",
+    y = "Test MSE"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.title = element_text(face = "bold")
+  )
+
+# Piango. Il buon risultato ottenuto prima era un caso e il modello
+# non è stato effettivamente messo in difficoltà. Proviamo a vedere
+# cosa succede se metto sia variabili buone che fuorvianti che inutili.
+
+# Esperimento 7
+
+set.seed(7537)
+
+generate_challenging_dataset <- function(n = 500, n_good = 5, n_bad = 5, noise_sd = 0.01) {
+  X1 <- runif(n, -2 * pi, 2 * pi)
+  
+  # Variabili buone
+  if (n_good > 0) {
+    good_vars <- as.data.frame(matrix(
+      replicate(n_good, sin(3*X1) + rnorm(n, sd = noise_sd)),
+      nrow = n
+    ))
+    names(good_vars) <- paste0("X_good", seq_len(n_good))
+  } else {
+    good_vars <- data.frame(matrix(nrow = n, ncol = 0))
+  }
+  
+  # Variabili fuorvianti
+  if (n_bad > 0) {
+    bad_vars <- as.data.frame(matrix(
+      replicate(n_bad, -cos(X1 + pi) + rnorm(n, sd = noise_sd)),
+      nrow = n
+    ))
+    names(bad_vars) <- paste0("X_bad", seq_len(n_bad))
+  } else {
+    bad_vars <- data.frame(matrix(nrow = n, ncol = 0))
+  }
+  
+  # Variabili irrilevanti
+  X_noise <- as.data.frame(matrix(rnorm(n * 5), ncol = 5))
+  names(X_noise) <- paste0("X_noise", seq_len(5))
+  
+  # Risposta
+  Y <- sin(3 * X1) + rnorm(n, sd = 0.3)
+  
+  # Combina tutto
+  df <- data.frame(Y = Y, X1 = X1, good_vars, bad_vars, X_noise)
+  return(df)
+}
+
+evaluate_model <- function(df) {
+  formula_str <- paste0("Y ~ ", paste0("s(", names(df)[-1], ")", collapse = " + "))
+  model <- gam(as.formula(formula_str), data = df)
+  preds <- predict(model, newdata = df)
+  mse <- mean((df$Y - preds)^2)
+  return(mse)
+}
+
+# Test con crescente numero di variabili fuorvianti
+configurations <- list(
+  list(n_good = 2, n_bad = 0),
+  list(n_good = 2, n_bad = 5),
+  list(n_good = 2, n_bad = 10),
+  list(n_good = 2, n_bad = 20),
+  list(n_good = 2, n_bad = 30)
+)
+
+results <- data.frame(
+  n_bad = sapply(configurations, function(cfg) cfg$n_bad),
+  mse = NA_real_
+)
+
+for (i in seq_along(configurations)) {
+  cfg <- configurations[[i]]
+  df <- generate_challenging_dataset(n_good = cfg$n_good, n_bad = cfg$n_bad)
+  results$mse[i] <- evaluate_model(df)
+  cat(sprintf("n_bad = %d → MSE = %.4f\n", cfg$n_bad, results$mse[i]))
+}
+
+# Plot dei risultati
+plot(results$n_bad, results$mse, type = "b", pch = 19,
+     xlab = "Numero variabili confuse (bad)", ylab = "MSE del GAM",
+     main = "Effetto della concurvità dannosa sul GAM")
+
+# Non ha funzionato nuovamente, forse le variabili fuorvianti non son realmente fuorvianti,
+# proviamo a cambiarne la formula.
+
+# Esperimento 8
+
+set.seed(7537)
+
+generate_challenging_dataset <- function(n = 500, n_good = 5, n_bad = 5, noise_sd = 0.01) {
+  X1 <- runif(n, -2 * pi, 2 * pi)
+  
+  # Variabili buone
+  if (n_good > 0) {
+    good_vars <- as.data.frame(matrix(
+      replicate(n_good, sin(3*X1) + rnorm(n, sd = noise_sd)),
+      nrow = n
+    ))
+    names(good_vars) <- paste0("X_good", seq_len(n_good))
+  } else {
+    good_vars <- data.frame(matrix(nrow = n, ncol = 0))
+  }
+  
+  # Variabili fuorvianti
+  if (n_bad > 0) {
+    bad_vars <- as.data.frame(matrix(
+      replicate(n_bad, 9*(-X1^3)/2 + 3*X1 + rnorm(n, sd = noise_sd)),
+      nrow = n
+    ))
+    names(bad_vars) <- paste0("X_bad", seq_len(n_bad))
+  } else {
+    bad_vars <- data.frame(matrix(nrow = n, ncol = 0))
+  }
+  
+  # Variabili irrilevanti
+  X_noise <- as.data.frame(matrix(rnorm(n * 5), ncol = 5))
+  names(X_noise) <- paste0("X_noise", seq_len(5))
+  
+  # Risposta
+  Y <- sin(3 * X1) + rnorm(n, sd = 0.3)
+  
+  # Combina tutto
+  df <- data.frame(Y = Y, X1 = X1, good_vars, bad_vars, X_noise)
+  return(df)
+}
+
+evaluate_model <- function(df) {
+  formula_str <- paste0("Y ~ ", paste0("s(", names(df)[-1], ")", collapse = " + "))
+  model <- gam(as.formula(formula_str), data = df)
+  preds <- predict(model, newdata = df)
+  mse <- mean((df$Y - preds)^2)
+  return(mse)
+}
+
+# Test con crescente numero di variabili fuorvianti
+configurations <- list(
+  list(n_good = 2, n_bad = 0),
+  list(n_good = 2, n_bad = 5),
+  list(n_good = 2, n_bad = 10),
+  list(n_good = 2, n_bad = 20),
+  list(n_good = 2, n_bad = 30)
+)
+
+results <- data.frame(
+  n_bad = sapply(configurations, function(cfg) cfg$n_bad),
+  mse = NA_real_
+)
+
+for (i in seq_along(configurations)) {
+  cfg <- configurations[[i]]
+  df <- generate_challenging_dataset(n_good = cfg$n_good, n_bad = cfg$n_bad)
+  results$mse[i] <- evaluate_model(df)
+  cat(sprintf("n_bad = %d → MSE = %.4f\n", cfg$n_bad, results$mse[i]))
+}
+
+# Plot dei risultati
+plot(results$n_bad, results$mse, type = "b", pch = 19,
+     xlab = "Numero variabili confuse (bad)", ylab = "MSE del GAM",
+     main = "Effetto della concurvità dannosa sul GAM")
+
+# Anche cambiando la formula delle variabili fuorvianti il risultato migliora leggermente
+# ma non in modo soddisfacente, forse son poche? Proviamo.
+
+# Esperimento 9
+
+generate_challenging_dataset <- function(n = 500, n_good = 1, n_bad = 0, seed = 46848) {
+  set.seed(seed)
+  
+  X1 <- runif(n, -2, 2)
+  good_vars <- data.frame(X1 = X1)
+  
+  # Variabili fuorvianti: rumore + trasformazione di X1
+  bad_vars <- replicate(n_bad, {
+    scale(sin(3 * X1 + rnorm(n)) + rnorm(n))
+  })
+  if (n_bad > 0) {
+    bad_vars <- as.data.frame(bad_vars)
+    colnames(bad_vars) <- paste0("X_bad", seq_len(n_bad))
+  } else {
+    bad_vars <- NULL
+  }
+  
+  # Variabile irrilevante totalmente casuale
+  X_noise <- rnorm(n)
+  
+  # Risposta come funzione liscia di X1
+  Y <- sin(3 * X1) + rnorm(n, sd = 0.3)
+  
+  # Dataframe
+  data <- data.frame(Y = Y, X1 = X1, X_noise = X_noise)
+  if (!is.null(bad_vars)) {
+    data <- cbind(data, bad_vars)
+  }
+  return(data)
+}
+
+# Funzione per valutare il modello GAM con formula automatica
+evaluate_model <- function(df) {
+  predictors <- setdiff(names(df), "Y")
+  formula <- as.formula(paste("Y ~", paste(sprintf("s(%s)", predictors), collapse = " + ")))
+  
+  # Train/test split
+  set.seed(42)
+  n <- nrow(df)
+  idx <- sample(1:n, size = floor(0.7 * n))
+  train <- df[idx, ]
+  test  <- df[-idx, ]
+  
+  model <- gam(formula, data = train)
+  preds <- predict(model, newdata = test)
+  mse <- mean((test$Y - preds)^2)
+  return(mse)
+}
+
+# Configurazioni crescenti di difficoltà
+configurations <- list(
+  list(n_bad = 0),
+  list(n_bad = 5),
+  list(n_bad = 10),
+  list(n_bad = 20),
+  list(n_bad = 30),
+  list(n_bad = 50),
+  list(n_bad = 75),
+  list(n_bad = 100)
+)
+
+# Esegui esperimento
+results <- data.frame(n_bad = sapply(configurations, function(cfg) cfg$n_bad), mse = NA)
+
+for (i in seq_along(configurations)) {
+  cfg <- configurations[[i]]
+  df <- generate_challenging_dataset(n_bad = cfg$n_bad)
+  results$mse[i] <- evaluate_model(df)
+  cat(sprintf("n_bad = %3d → MSE = %.4f\n", cfg$n_bad, results$mse[i]))
+}
+
+# Questa volta sembra aver funzionato, proviamo a sostituire la formula delle
+# variabili fuorvianti come prima.
+
+# Esperimento 10
+
+generate_challenging_dataset <- function(n = 500, n_good = 1, n_bad = 0, seed = 46848) {
+  set.seed(seed)
+  
+  X1 <- runif(n, -2, 2)
+  good_vars <- data.frame(X1 = X1)
+  
+  # Variabili fuorvianti: rumore + trasformazione di X1
+  bad_vars <- replicate(n_bad, {
+    scale(9*(-X1^3)/2 + 3*X1 + rnorm(n))
+  })
+  if (n_bad > 0) {
+    bad_vars <- as.data.frame(bad_vars)
+    colnames(bad_vars) <- paste0("X_bad", seq_len(n_bad))
+  } else {
+    bad_vars <- NULL
+  }
+  
+  # Variabile irrilevante totalmente casuale
+  X_noise <- rnorm(n)
+  
+  # Risposta come funzione liscia di X1
+  Y <- sin(3 * X1) + rnorm(n, sd = 0.3)
+  
+  # Dataframe
+  data <- data.frame(Y = Y, X1 = X1, X_noise = X_noise)
+  if (!is.null(bad_vars)) {
+    data <- cbind(data, bad_vars)
+  }
+  return(data)
+}
+
+# Funzione per valutare il modello GAM con formula automatica
+evaluate_model <- function(df) {
+  predictors <- setdiff(names(df), "Y")
+  formula <- as.formula(paste("Y ~", paste(sprintf("s(%s)", predictors), collapse = " + ")))
+  
+  # Train/test split
+  set.seed(42)
+  n <- nrow(df)
+  idx <- sample(1:n, size = floor(0.7 * n))
+  train <- df[idx, ]
+  test  <- df[-idx, ]
+  
+  model <- gam(formula, data = train)
+  preds <- predict(model, newdata = test)
+  mse <- mean((test$Y - preds)^2)
+  return(mse)
+}
+
+# Configurazioni crescenti di difficoltà
+configurations <- list(
+  list(n_bad = 0),
+  list(n_bad = 5),
+  list(n_bad = 10),
+  list(n_bad = 20),
+  list(n_bad = 30),
+  list(n_bad = 50),
+  list(n_bad = 75),
+  list(n_bad = 100)
+)
+
+# Esegui esperimento
+results <- data.frame(n_bad = sapply(configurations, function(cfg) cfg$n_bad), mse = NA)
+
+for (i in seq_along(configurations)) {
+  cfg <- configurations[[i]]
+  df <- generate_challenging_dataset(n_bad = cfg$n_bad)
+  results$mse[i] <- evaluate_model(df)
+  cat(sprintf("n_bad = %3d → MSE = %.4f\n", cfg$n_bad, results$mse[i]))
+}
+
+# Proviamo a fare un ultima sostituzione sempre nella formula per renderla un po' più diversa.
+
+# Esperimento 11
+
+generate_challenging_dataset <- function(n = 500, n_good = 1, n_bad = 0, seed = 46848) {
+  set.seed(seed)
+  
+  X1 <- runif(n, -2, 2)
+  good_vars <- data.frame(X1 = X1)
+  
+  # Variabili fuorvianti: rumore + trasformazione di X1
+  bad_vars <- replicate(n_bad, {
+    scale((-X1^3)/6 + X1 + rnorm(n))
+  })
+  if (n_bad > 0) {
+    bad_vars <- as.data.frame(bad_vars)
+    colnames(bad_vars) <- paste0("X_bad", seq_len(n_bad))
+  } else {
+    bad_vars <- NULL
+  }
+  
+  # Variabile irrilevante totalmente casuale
+  X_noise <- rnorm(n)
+  
+  # Risposta come funzione liscia di X1
+  Y <- sin(3 * X1) + rnorm(n, sd = 0.3)
+  
+  # Dataframe
+  data <- data.frame(Y = Y, X1 = X1, X_noise = X_noise)
+  if (!is.null(bad_vars)) {
+    data <- cbind(data, bad_vars)
+  }
+  return(data)
+}
+
+# Funzione per valutare il modello GAM con formula automatica
+evaluate_model <- function(df) {
+  predictors <- setdiff(names(df), "Y")
+  formula <- as.formula(paste("Y ~", paste(sprintf("s(%s)", predictors), collapse = " + ")))
+  
+  # Train/test split
+  set.seed(42)
+  n <- nrow(df)
+  idx <- sample(1:n, size = floor(0.7 * n))
+  train <- df[idx, ]
+  test  <- df[-idx, ]
+  
+  model <- gam(formula, data = train)
+  preds <- predict(model, newdata = test)
+  mse <- mean((test$Y - preds)^2)
+  return(mse)
+}
+
+# Configurazioni crescenti di difficoltà
+configurations <- list(
+  list(n_bad = 0),
+  list(n_bad = 5),
+  list(n_bad = 10),
+  list(n_bad = 20),
+  list(n_bad = 30),
+  list(n_bad = 50),
+  list(n_bad = 75),
+  list(n_bad = 100)
+)
+
+# Esegui esperimento
+results <- data.frame(n_bad = sapply(configurations, function(cfg) cfg$n_bad), mse = NA)
+
+for (i in seq_along(configurations)) {
+  cfg <- configurations[[i]]
+  df <- generate_challenging_dataset(n_bad = cfg$n_bad)
+  results$mse[i] <- evaluate_model(df)
+  cat(sprintf("n_bad = %3d → MSE = %.4f\n", cfg$n_bad, results$mse[i]))
+}
